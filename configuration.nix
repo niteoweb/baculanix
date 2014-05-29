@@ -535,5 +535,16 @@ proxy_set_header X-Forwarded-Protocol https;
       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDOXEZu/ntHOrciyQMPl6kYUSz4+XUTBsl1mQINMA5mdcosaTOnBurjCh1HG5btGWV9Cjqy7OywC4LkgqEtjromD1YWeNfVTAk2kiG7tcNYYvWsxjJzdzH9t8H7eiLz8XM66Q+Ur7kilepw92wLValfAgr/SvnBzyo3/FfdN8MCuTe358dmKp5zvie3x9pzQ1tOwvVjkmW6tp2h/XKIsbEP4Hv4IbXcwPFAJGSlAr/CXnzNvprNW4tJmf0J9pm7Ovy9EyT/lHPhPZ+Ib91lngDZbjGQIl3Zf4XmkpVtfBjHUXnQlPZCThTMNBNcR97QP9IJFbptu/Bz8hGeFtz0ryxF matej@matej41"
     ];
   };
+  users.extraUsers.zupo = {
+    group = "users";
+    extraGroups = [ "wheel" ];
+    uid = 1001;
+    createHome = true;
+    home = "/home/zupo";
+    shell = "/run/current-system/sw/bin/bash";
+    openssh.authorizedKeys.keys = [
+      "ssh-dss AAAAB3NzaC1kc3MAAACBALm52s2H3ZAWCkh1o4YENJtMgpCrBTR80Xw9wvIupg0k3/GDhLBm6Yxq849UMg5SzqpVYNt3IOk2mn0UAtPcCShKnlX0BQ/hiHeG2nd8FiPw48/5SXweAsd2wsU9225pvvdOOx2tsSpzmAL/yJ2MiDg9ucLzwaopwzusfiMxuva7AAAAFQC2Z1WGAVGZrlwbdart9ifJwwPqhwAAAIEArYRhMpz0eXoEIGCyb2e7e88WbYzm1a2Y/WniTJG9RZXsaXGvXnLHvhD/4R9casEJ/1tl5SGDaKVVi+ZbF7+muxfR9cHie9TfH5uNtOiEOhA6LHtkghfHUgg290KFIDMFI7YTdq2kCpGMOiQzTkMO9OvkfZAHt2vusS1cj9zPIXAAAACAdtcFh3IYhokkTOTGaHHwmi4LmIYwsnpPwg7TrQpiMQMJ3v/rnXAqFAxg6PcNjrenbcztPPNjKtxeeB1OFRun0ySw6YVYRp8ac5NfiEbdu1Q9ieuGwFb9BZbj+nmib1+3aPc/aFIHWol+dhD3YPymmuhMY7uMQ/g4mYbD+zhlmeA= zupo@Nejc-Zupans-MacBook-Pro.local"
+    ];
+  };
 
 }
