@@ -458,67 +458,140 @@ in
 
     nginx.enable = true;
     nginx.config = ''
-    worker_processes  1;
-    error_log  logs/error.log;
-    pid        logs/nginx.pid;
-    events {
-        worker_connections  1024;
+
+worker_processes 4;
+pid /var/run/nginx.pid;
+
+events {
+    worker_connections 1024;
+    # multi_accept on;
+}
+
+http {
+    ##
+    # Basic Settings
+    ##
+
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+    # server_tokens off;
+
+    # server_names_hash_bucket_size 64;
+    # server_name_in_redirect off;
+
+    types {
+      text/html                             html htm shtml;
+      text/css                              css;
+      text/xml                              xml rss;
+      image/gif                             gif;
+      image/jpeg                            jpeg jpg;
+      application/x-javascript              js;
+      text/plain                            txt;
+      text/x-component                      htc;
+      text/mathml                           mml;
+      image/png                             png;
+      image/x-icon                          ico;
+      image/x-jng                           jng;
+      image/vnd.wap.wbmp                    wbmp;
+      application/java-archive              jar war ear;
+      application/mac-binhex40              hqx;
+      application/pdf                       pdf;
+      application/x-cocoa                   cco;
+      application/x-java-archive-diff       jardiff;
+      application/x-java-jnlp-file          jnlp;
+      application/x-makeself                run;
+      application/x-perl                    pl pm;
+      application/x-pilot                   prc pdb;
+      application/x-rar-compressed          rar;
+      application/x-redhat-package-manager  rpm;
+      application/x-sea                     sea;
+      application/x-shockwave-flash         swf;
+      application/x-stuffit                 sit;
+      application/x-tcl                     tcl tk;
+      application/x-x509-ca-cert            der pem crt;
+      application/x-xpinstall               xpi;
+      application/zip                       zip;
+      application/octet-stream              deb;
+      application/octet-stream              bin exe dll;
+      application/octet-stream              dmg;
+      application/octet-stream              eot;
+      application/octet-stream              iso img;
+      application/octet-stream              msi msp msm;
+      audio/mpeg                            mp3;
+      audio/x-realaudio                     ra;
+      video/mpeg                            mpeg mpg;
+      video/quicktime                       mov;
+      video/x-flv                           flv;
+      video/x-msvideo                       avi;
+      video/x-ms-wmv                        wmv;
+      video/x-ms-asf                        asx asf;
+      video/x-mng                           mng;
+    }
+    default_type application/octet-stream;
+
+    ##
+    # Logging Settings
+    ##
+
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    ##
+    # Gzip Settings
+    ##
+
+    gzip on;
+    gzip_disable "msie6";
+
+    ##
+    # Virtual Host Configs
+    ##
+
+    server {
+        server_name _;
+        return 444;
     }
 
-    http {
-        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
-                          '$status $body_bytes_sent "$http_referer" '
-                          '"$http_user_agent" "$http_x_forwarded_for"';
+    server {
+        # optional ssl configuration
 
-        access_log  logs/access.log  main;
-        sendfile        on;
-        keepalive_timeout  65;
+        listen 443 ssl;
+        ssl_certificate /etc/nixos/ssl/almir.crt;
+        ssl_certificate_key /etc/nixos/ssl/almir.key;
 
-        server {
-            listen 0.0.0.0:80;
-            server_name bacula.niteoweb.com;
-            rewrite ^ https://$server_name$request_uri? permanent;
-        }
+        # end of optional ssl configuration
 
-        server {
-            listen 443 ssl;
-            server_name ${secrets.networking.bacula.address};
-            keepalive_timeout    70;
+        server_name  ${secrets.networking.bacula.address};
 
-            access_log /var/log/almir-nginx-access.log;
-            error_log /var/log/almir-nginx-error.log;
+        access_log  /var/log/almir-nginx-access.log;
+        error_log  /var/log/almir-nginx-error.log;
 
-            ssl_session_cache    shared:SSL:10m;
-            ssl_session_timeout  10m;
-            ssl_certificate     /etc/nixos/ssl/almir.crt;
-            ssl_certificate_key /etc/nixos/ssl/almir.key;
+        location / {
+            auth_basic "Restricted";
+            auth_basic_user_file /etc/nixos/almir.htaccess;
 
-            location / {
-                auth_basic "Restricted";
-                auth_basic_user_file /etc/nixos/almir.htaccess;
+            proxy_set_header        Host $http_host;
+            proxy_set_header        X-Real-IP $remote_addr;
+            proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header        X-Forwarded-Proto $scheme;
 
-                proxy_pass http://127.0.0.1:35000/;
-
-proxy_redirect              off;
-proxy_set_header            Host $host;
-proxy_set_header            X-Real-IP $remote_addr;
-proxy_set_header            X-Forwarded-For $proxy_add_x_forwarded_for;
-client_max_body_size        10m;
-client_body_buffer_size     128k;
-proxy_connect_timeout       90;
-proxy_send_timeout          90;
-proxy_read_timeout          90;
-proxy_buffer_size           4k;
-proxy_buffers               4 32k;
-proxy_busy_buffers_size     64k;
-proxy_temp_file_write_size  64k;
-
-proxy_set_header X-Forwarded-Protocol https;
-
-#proxy_set_header X-Forwarded-HTTPS on;
-            }
+            client_max_body_size    10m;
+            client_body_buffer_size 128k;
+            proxy_connect_timeout   60s;
+            proxy_send_timeout      90s;
+            proxy_read_timeout      90s;
+            proxy_buffering         off;
+            proxy_temp_file_write_size 64k;
+            proxy_pass http://127.0.0.1:35000/;
+            proxy_redirect          off;
         }
     }
+}
+
+
     '';
 
   };
