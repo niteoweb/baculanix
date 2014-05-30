@@ -12,6 +12,11 @@ in
       ./hardware-configuration.nix
     ];
 
+  fileSystems."/media/bacula_disk" =
+    { device = "/dev/sdb1";
+      fsType = "ext3";
+    };
+
   # Use the GRUB 2 boot loader.
   boot.loader.grub.enable = true;
   boot.loader.grub.version = 2;
@@ -30,7 +35,7 @@ in
 
     firewall = {
       enable = true;
-      allowedTCPPorts = [ 22 443 9103 ];
+      allowedTCPPorts = [ 22 9103 ];
     };
   };
 
@@ -435,7 +440,7 @@ in
       name = "bacula-sd";
       port = 9103;
       device."FileStorage" = {
-        archiveDevice = "/media/bacula_disk";
+        archiveDevice = "/media/bacula_disk/backup";
         mediaType = "File";
         extraDeviceConfig = ''
         LabelMedia = yes;
@@ -553,6 +558,13 @@ http {
     server {
         server_name _;
         return 444;
+    }
+
+    server {
+        listen       80;
+        server_name  ${secrets.networking.bacula.address};
+        # rewrite ^ https://$http_host$request_uri? permanent;      # force redirect http to https
+        return 301 https://$host$request_uri;
     }
 
     server {
